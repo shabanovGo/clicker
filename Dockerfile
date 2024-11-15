@@ -1,5 +1,8 @@
 FROM golang:1.22.3-alpine AS builder
 
+# Установка protoc
+RUN apk add --no-cache protobuf protobuf-dev
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
