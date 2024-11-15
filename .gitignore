@@ -1,0 +1,46 @@
+echo "# Environment files
+.env
+.env*
+
+# Binaries
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go specific
+*.test
+*.out
+go.work
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Docker
+postgres_data/
+
+# Logs
+*.log
+logs/
+
+# Temp
+tmp/
+temp/
+
+# Build
+dist/
+build/
+
+# Debug
+debug
+
+# Dependencies
+vendor/" > .gitignore

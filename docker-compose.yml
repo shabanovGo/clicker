@@ -1,0 +1,88 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=clicks_user
+      - POSTGRES_PASSWORD=clicks_password
+      - POSTGRES_DB=clicks_db
+      - REST_HOST=0.0.0.0
+      - REST_PORT=8080
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=50051
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - clicks-network
+
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=clicks_user
+      - POSTGRES_PASSWORD=clicks_password
+      - POSTGRES_DB=clicks_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clicks_user -d clicks_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clicks-network
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #     - PGADMIN_DEFAULT_PASSWORD=admin
+  #   ports:
+  #     - "5050:80"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - clicks-network  #   image: dpage/pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #     - PGADMIN_DEFAULT_PASSWORD=admin
+  #   ports:
+  #     - "5050:80"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - clicks-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - clicks-network
+
+networks:
+  clicks-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
