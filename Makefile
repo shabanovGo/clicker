@@ -64,16 +64,10 @@ start: migrate seed build up
 
 reset-db: recreate-db migrate seed
 
-redis-cli:
-	docker exec -it $$(docker ps -q -f name=redis) redis-cli
-
-redis-logs:
-	$(DC) logs -f redis
-
 proto:
 	@echo "Generating proto files..."
 	@mkdir -p $(COUNTER_PKG) $(STATS_PKG)
-	
+
 	protoc -I=$(PROTO_DIR) \
 		--go_out=$(COUNTER_PKG) \
 		--go_opt=paths=source_relative \
@@ -82,7 +76,7 @@ proto:
 		--grpc-gateway_out=$(COUNTER_PKG) \
 		--grpc-gateway_opt=paths=source_relative \
 		$(PROTO_DIR)/counter.proto
-	
+
 	protoc -I=$(PROTO_DIR) \
 		--go_out=$(STATS_PKG) \
 		--go_opt=paths=source_relative \

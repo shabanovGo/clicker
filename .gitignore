@@ -1,4 +1,4 @@
-echo "# Environment files
+# Environment files
 .env
 .env*
 
@@ -43,4 +43,4 @@ build/
 debug
 
 # Dependencies
-vendor/" > .gitignore
+vendor/

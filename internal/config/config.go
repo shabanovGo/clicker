@@ -19,11 +19,6 @@ type Config struct {
 
     GrpcHost string
     GrpcPort string
-
-    RedisHost     string
-    RedisPort     string
-    RedisPassword string
-    RedisDB       int
 }
 
 func New() (*Config, error) {
@@ -43,11 +38,6 @@ func New() (*Config, error) {
 
         GrpcHost: getEnv("GRPC_HOST", "0.0.0.0"),
         GrpcPort: getEnv("GRPC_PORT", "50051"),
-
-        RedisHost:     getEnv("REDIS_HOST", "localhost"),
-        RedisPort:     getEnv("REDIS_PORT", "6379"),
-        RedisPassword: getEnv("REDIS_PASSWORD", ""),
-        RedisDB:       0,
     }, nil
 }
 
@@ -68,10 +58,6 @@ func (c *Config) GetRestAddress() string {
 
 func (c *Config) GetGrpcAddress() string {
     return fmt.Sprintf("%s:%s", c.GrpcHost, c.GrpcPort)
-}
-
-func (c *Config) GetRedisAddress() string {
-    return fmt.Sprintf("%s:%s", c.RedisHost, c.RedisPort)
 }
 
 func getEnv(key, defaultValue string) string {

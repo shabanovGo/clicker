@@ -4,7 +4,7 @@ import (
     "context"
     "fmt"
     "time"
-    
+
     "clicker/internal/domain/entity"
     "clicker/internal/domain/repository"
 )

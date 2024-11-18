@@ -31,7 +31,7 @@ func (uc *clickUseCase) Counter(ctx context.Context, bannerID int64) (int64, err
         BannerID:  bannerID,
         Timestamp: time.Now(),
     }
-    return uc.repo.IncrementClick(ctx, bannerID)
+    return uc.repo.GetTotalClicks(ctx, bannerID)
 }
 
 func (uc *clickUseCase) Stats(ctx context.Context, bannerID int64, from, to time.Time) ([]*entity.Click, error) {
