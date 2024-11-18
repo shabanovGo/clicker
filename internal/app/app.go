@@ -2,7 +2,7 @@ package app
 
 import (
     "context"
-    "database/sql"
+    "github.com/jackc/pgx/v4/pgxpool"
     "fmt"
     "log"
     "net"
@@ -30,23 +30,18 @@ type App struct {
     cfg    *config.Config
     router *mux.Router
     grpc   *grpc.Server
-    db     *sql.DB
+    db     *pgxpool.Pool
 }
 
 func New(cfg *config.Config) *App {
-    db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-        cfg.PostgresHost,
-        cfg.PostgresPort,
-        cfg.PostgresUser,
-        cfg.PostgresPassword,
-        cfg.PostgresDB,
-    ))
+    dbConfig, err := pgxpool.ParseConfig(cfg.GetPostgresDSN())
     if err != nil {
-        log.Fatalf("Не удалось подключиться к базе данных: %v", err)
+        log.Fatalf("Unable to parse PostgreSQL DSN: %v", err)
     }
 
-    if err := db.Ping(); err != nil {
-        log.Fatalf("Не удалось проверить соединение с БД: %v", err)
+    db, err := pgxpool.ConnectConfig(context.Background(), dbConfig)
+    if err != nil {
+        log.Fatalf("Unable to connect to database: %v", err)
     }
 
     grpcServer := grpc.NewServer()

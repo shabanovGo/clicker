@@ -2,45 +2,38 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"clicker/internal/domain/entity"
-	_ "github.com/lib/pq"
 	"fmt"
 	"time"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type PostgresClickRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewPostgresClickRepository(db *sql.DB) ClickRepository {
+func NewPostgresClickRepository(db *pgxpool.Pool) ClickRepository {
 	return &PostgresClickRepository{db: db}
 }
 
 func (r *PostgresClickRepository) SaveBatch(ctx context.Context, clicks []*entity.Click) error {
-	tx, err := r.db.BeginTx(ctx, nil)
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
-
-	stmt, err := tx.PrepareContext(ctx, `
-		INSERT INTO clicks (banner_id, timestamp)
-		VALUES ($1, $2)
-	`)
-	if err != nil {
-		return fmt.Errorf("failed to prepare statement: %w", err)
-	}
-	defer stmt.Close()
+	defer tx.Rollback(ctx)
 
 	for _, click := range clicks {
-		_, err := stmt.ExecContext(ctx, click.BannerID, click.Timestamp)
+		_, err := tx.Exec(ctx, `
+			INSERT INTO clicks (banner_id, timestamp)
+			VALUES ($1, $2)
+		`, click.BannerID, click.Timestamp)
 		if err != nil {
 			return fmt.Errorf("failed to execute statement: %w", err)
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
@@ -48,7 +41,7 @@ func (r *PostgresClickRepository) SaveBatch(ctx context.Context, clicks []*entit
 }
 
 func (r *PostgresClickRepository) GetStats(ctx context.Context, bannerID int64, from, to time.Time) ([]*entity.Click, error) {
-	rows, err := r.db.QueryContext(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT banner_id, timestamp
 		FROM clicks
 		WHERE banner_id = $1 AND timestamp BETWEEN $2 AND $3
@@ -77,7 +70,7 @@ func (r *PostgresClickRepository) GetStats(ctx context.Context, bannerID int64, 
 
 func (r *PostgresClickRepository) GetTotalClicks(ctx context.Context, bannerID int64) (int64, error) {
 	var totalClicks int64
-	err := r.db.QueryRowContext(ctx, `
+	err := r.db.QueryRow(ctx, `
 		SELECT COUNT(*) FROM clicks WHERE banner_id = $1
 	`, bannerID).Scan(&totalClicks)
 	if err != nil {

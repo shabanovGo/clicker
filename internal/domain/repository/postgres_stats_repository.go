@@ -2,22 +2,22 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"clicker/internal/domain/entity"
 	"fmt"
 	"time"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type PostgresStatsRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewPostgresStatsRepository(db *sql.DB) StatsRepository {
+func NewPostgresStatsRepository(db *pgxpool.Pool) StatsRepository {
 	return &PostgresStatsRepository{db: db}
 }
 
 func (r *PostgresStatsRepository) GetStats(ctx context.Context, bannerID int64, from, to time.Time) ([]*entity.Click, error) {
-	rows, err := r.db.QueryContext(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT banner_id, timestamp, count
 		FROM clicks
 		WHERE banner_id = $1 AND timestamp BETWEEN $2 AND $3
